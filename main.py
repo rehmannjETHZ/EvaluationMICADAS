@@ -1,5 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+#load CSV file Jonas
+path = open(os.path.expanduser("~/Git_Repos/EvaluationMICADAS/RCD_data.csv"))
 
 #general statistical tools
 def mean(x):
@@ -55,7 +59,3 @@ def FC14(R_molblf, FC14OXIInom, Rstd_molblf):
 def dFC14(FC14, dR_molblf, R_molblf, dstdR_molblf, Rstd_molblf):
     return FC14*np.sqrt((dR_molblf/R_molblf)**2 + (mean( dstdR_molblf)/mean(Rstd_molblf))**2)
 
-
-
-print('asdfasdfasdfsadf')
-print('Test2')
