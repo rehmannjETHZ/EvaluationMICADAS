@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 import os
 
 #load CSV file Jonas
-path = open(os.path.expanduser("~/Git_Repos/EvaluationMICADAS/RCD_data.csv"))
+path_jonas = open(os.path.expanduser("~/Git_Repos/EvaluationMICADAS/RCD_data.csv"))
+data_file = np.genfromtxt(path_jonas, delimiter=',')
+print(data_file)
 
 #general statistical tools
 def mean(x):
