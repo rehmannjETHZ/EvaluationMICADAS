@@ -8,6 +8,14 @@ data_file = np.genfromtxt(path_jonas, delimiter=',')
 #format data file to only have the relevant number; this should be a 28 by 7 matrix
 DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
 print(DF.shape)
+# format of DF: 14C counts | 12C (HE) muA | 13C (HE) nA | 13 CH nA (molecular current) |r-time | cyc | sample weight
+
+#defining canstants used in the calculation 
+def dk(t): #@TODO: look up correct value
+    return 50*t
+
+def k(t): #@TODO: look up correct value
+    return 200*t
 
 #general statistical tools
 def mean(x):
@@ -17,15 +25,16 @@ def weightedmean(x, w):
     return sum(x*w)/sum(w)
 
 #3.3.2.1 background correction
+
 def weighting(x, C12, t):
     p = C12*t
     return weightedmean(x, p)
 
-def backgroundcorrect(C12, C14, k, C13mol):
-    return (C14 - k*C13mol)/C12
+def backgroundcorrect(C12, C14, t, C13mol):
+    return (C14 - k(t)*C13mol)/C12
 
-def dbackgroundcorrect(dC14, dk):
-    return np.sqrt(dC14**2 + dk**2)
+def dbackgroundcorrect(dC14, t):
+    return np.sqrt(dC14**2 + dk(t)**2)
 
 #3.3.2.2 blank substraction
 
