@@ -24,7 +24,7 @@ C14_counts = DF[:, 0]
 C12_microA = DF[:, 1]
 C13_nanoA = DF[:, 2]
 C13molecularCurrent_nanoA = DF[:, 3]
-rtime_s = DF[: 4]
+rtime_s = DF[:, 4]
 cycles = DF[:, 5]
 sampleweight_microg = DF[:, 6]
 
@@ -42,6 +42,9 @@ def dk(t): #@TODO: look up correct value
 
 def k(t): #@TODO: look up correct value
     return 200*t
+F14COXII = 1.34066 # Nominal F14C of OxII standard
+dF14COXII = -0.0178*F14COXII
+
 
 #general statistical tools
 def mean(x):
@@ -60,7 +63,7 @@ def backgroundcorrect(C12, C14, t, C13mol):
     return (C14 - k(t)*C13mol)/C12
 
 def dbackgroundcorrect(dC14, t):
-    return np.sqrt(dC14**2 + dk(t)**2)
+    return np.sqrt(dC14*dC14 + dk(t)*dk(t))
 
 #3.3.2.2 blank substraction
 
@@ -98,3 +101,8 @@ def FC14(R_molblf, FC14OXIInom, Rstd_molblf):
 def dFC14(FC14, dR_molblf, R_molblf, dstdR_molblf, Rstd_molblf):
     return FC14*np.sqrt((dR_molblf/R_molblf)**2 + (mean( dstdR_molblf)/mean(Rstd_molblf))**2)
 
+# calculations
+
+
+R_mol = backgroundcorrect(C12_microA, C14_counts, rtime_s, C13molecularCurrent_microA)
+dR_mol = dbackgroundcorrect(dC14, rtime_s)
