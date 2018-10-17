@@ -26,9 +26,14 @@ C13_nanoA = DF[:, 2]
 C13molecularCurrent_nanoA = DF[:, 3]
 rtime_s = DF[: 4]
 cycles = DF[:, 5]
-sampleweight_mg = DF[:, 6]
+sampleweight_microg = DF[:, 6]
 
-print(C14_counts)
+
+#conversion into desired unit
+
+C13_microA = C13_nanoA/1000
+C13molecularCurrent_microA = C13molecularCurrent_nanoA/1000
+
 
 
 #defining canstants used in the calculation 
