@@ -2,13 +2,34 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os #used for data path
 
-#load CSV file Jonas
-path_jonas = open(os.path.expanduser("~/Git_Repos/EvaluationMICADAS/RCD_data2csv.csv"))
-data_file = np.genfromtxt(path_jonas, delimiter=',')
-#format data file to only have the relevant number; this should be a 28 by 7 matrix
+# #load CSV file Jonas
+# path_jonas = open(os.path.expanduser("~/Git_Repos/EvaluationMICADAS/RCD_data2csv.csv"))
+# data_file = np.genfromtxt(path_jonas, delimiter=',')
+# #format data file to only have the relevant number; this should be a 28 by 7 matrix
+# DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
+# print(DF.shape)
+# # format of DF: 14C counts | 12C (HE) muA | 13C (HE) nA | 13 CH nA (molecular current) |r-time | cyc | sample weight
+
+# Joël's file reader - Jonas file reader does not work at my computer... but as long as main is
+# in the same directory as RDC_data2csv.csv this version should work everywhere.
+
+data_file = np.genfromtxt('RCD_data2csv.csv', delimiter=',')
 DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
+
+
+#Splitting values into seperate arrays:
+
 print(DF.shape)
-# format of DF: 14C counts | 12C (HE) muA | 13C (HE) nA | 13 CH nA (molecular current) |r-time | cyc | sample weight
+C14_counts = DF[:, 0]
+C12_microA = DF[:, 1]
+C13_nanoA = DF[:, 2]
+C13molecularCurrent_nanoA = DF[:, 3]
+rtime_s = DF[: 4]
+cycles = DF[:, 5]
+sampleweight_mg = DF[:, 6]
+
+print(C14_counts)
+
 
 #defining canstants used in the calculation 
 def dk(t): #@TODO: look up correct value
