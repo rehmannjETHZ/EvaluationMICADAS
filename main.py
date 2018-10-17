@@ -68,7 +68,7 @@ def dbackgroundcorrect(dC14, t):
 #3.3.2.2 blank substraction
 
 def R_molbl(R_mol, Rbl_mol):
-    return R_mol - mean(Rbl_mol)
+    return R_mol - mean(Rbl_mol)*np.zeros_like(R_mol)
 
 def dR_molbl(d_bl, d_mol):
     return np.sqrt(d_bl**2 + d_mol**2)
@@ -106,5 +106,26 @@ def dFC14(FC14, dR_molblf, R_molblf, dstdR_molblf, Rstd_molblf):
 
 
 _R_mol = backgroundcorrect(C12_microA, C14_counts, rtime_s, C13molecularCurrent_microA)
+
 _R_molbl = _R_mol - R_molbl(_R_mol, backgroundcorrect(C12_microA[0:4], C14_counts[0:4], rtime_s[0:4],
                                                       C13molecularCurrent_microA[0:4]))
+
+dC13_std = np.sqrt(mean(C13_microA[6:12]))
+wmeanallratio_std = weightedmean(C13_microA[6:12]/C12_microA[6:12], rtime_s[6:12])
+_dC13_sampleVPDB = dC13_sampleVPDB(C13_microA, C12_microA, dC13_std, wmeanallratio_std)
+_dC13_sample = 0 # for single sample
+_R_molblf = R_molblf(_R_molbl, _dC13_sample)
+print(_R_molblf)
+F14C = (weightedmean(_R_molblf[13:28], rtime_s[13:28])/weightedmean(_R_molblf[6:12], rtime_s[6:12]))*F14COXII
+print(F14C)
+#conventional radiocarbon age
+
+T_14Cyears = -8033*np.log(F14C)
+print(T_14Cyears) #Years BP meaning years before 1950
+
+#date all samples individually:
+
+F14C2 = (_R_molblf[13:28]/weightedmean(_R_molblf[6:12], rtime_s[6:12]))*F14COXII
+
+T_14Cyears2 = -8033*np.log(F14C2)
+print(T_14Cyears2) #Years BP meaning years before 1950
