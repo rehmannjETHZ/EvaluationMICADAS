@@ -53,6 +53,9 @@ def mean(x):
 def weightedmean(x, w):
     return sum(x*w)/sum(w)
 
+def var(x):
+    return np.sqrt(mean(x*x) - mean(x)**2)
+
 #3.3.2.1 background correction
 
 def weighting(x, C12, t):
@@ -62,8 +65,8 @@ def weighting(x, C12, t):
 def backgroundcorrect(C12, C14, t, C13mol):
     return (C14 - k(t)*C13mol)/C12
 
-def dbackgroundcorrect(dC14, t):
-    return np.sqrt(dC14*dC14 + dk(t)*dk(t))
+def dbackgroundcorrect(dC14, dk):
+    return np.sqrt(dC14*dC14 + dk*dk)
 
 #3.3.2.2 blank substraction
 
