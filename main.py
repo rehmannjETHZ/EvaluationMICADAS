@@ -1,21 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.stats 
 import os #used for data path
 
 # #load CSV file Jonas
-# path_jonas = open(os.path.expanduser("~/Git_Repos/EvaluationMICADAS/RCD_data2csv.csv"))
-# data_file = np.genfromtxt(path_jonas, delimiter=',')
+"""path_unicode = u'~/Git_Repos/EvaluationMICADAS/RCD_data2csv.csv'
+path_unicode.encode('utf-8')"""
+path_jonas = open(os.path.expanduser('~/Git_Repos/EvaluationMICADAS/RCD_data2csv.csv'), encoding='utf-8')
+data_file = np.genfromtxt(path_jonas, delimiter=',')
 # #format data file to only have the relevant number; this should be a 28 by 7 matrix
-# DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
+DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
 # print(DF.shape)
 # # format of DF: 14C counts | 12C (HE) muA | 13C (HE) nA | 13 CH nA (molecular current) |r-time | cyc | sample weight
 
 # Joël's file reader - Jonas file reader does not work at my computer... but as long as main is
 # in the same directory as RDC_data2csv.csv this version should work everywhere.
 
+"""
 data_file = np.genfromtxt('RCD_data2csv.csv', delimiter=',')
 DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
-
+"""
 
 #Splitting values into seperate arrays:
 
@@ -105,9 +109,15 @@ def FC14(R_molblf, FC14OXIInom, Rstd_molblf):
 def dFC14(FC14, dR_molblf, R_molblf, dstdR_molblf, Rstd_molblf):
     return FC14*np.sqrt((dR_molblf/R_molblf)**2 + (mean( dstdR_molblf)/mean(Rstd_molblf))**2)
 
+def mychisquare(sample):
+    _chisquared = 0
+    for i in range (sample.shape[0]):
+        _chisquared += (mean(sample) - sample[i])**2/np.sqrt(sample[i])
+    return _chisquared
+
 # calculations
 
-
+#age calculations
 _R_mol = backgroundcorrect(C12_microA, C14_counts, rtime_s, C13molecularCurrent_microA)
 
 
@@ -119,7 +129,6 @@ _dC13_sample = 0 # for single sample
 _R_molblf = R_molblf(_R_molbl, _dC13_sample)
 
 # 1 calculate with mean of all samples
-
 F14C = (weightedmean(_R_molblf[13:28], rtime_s[13:28])/weightedmean(_R_molblf[6:12], rtime_s[6:12]))*F14COXII
 print('weighted mean of all samples F14C ratio: ', F14C)
 
@@ -128,8 +137,30 @@ print('weighted mean of all samples T_14C: ', T_14Cyears) #Years BP meaning year
 
 
 # 2 date all samples individually:
-
 F14C2 = (_R_molblf[13:28]/weightedmean(_R_molblf[6:12], rtime_s[6:12]))*F14COXII
-print('individual F14C ratios of all samples: ', F14C2)
+print('individual F14C ratios of all samples: ', '\n' , F14C2)
 T_14Cyears2 = -8033*np.log(F14C2) #conventional radiocarbon age
-print('Individual T14C for all samples: ', T_14Cyears2) #Years BP meaning years before 1950
+print('Individual T14C for all samples: ', '\n', T_14Cyears2) #Years BP meaning years before 1950
+
+
+#error calculation @TODO: use weighted mean instead of mean!!
+print('\n', 'Error calculations', '\n')
+
+_d14C = np.sqrt(C14_counts) #estimated as sqrt of counts of 14C
+_dmol = 3e-16
+_dR_mol = dbackgroundcorrect(_d14C, dk(rtime_s)) 
+_dR_molbl = dR_molbl(_dR_mol, _dmol)
+_d13COXIInom = -17.8/1000 
+_meanratio_standard = mean((C13_microA[4:6]/C12_microA[4:6]))
+d13C_sample = dC13_sampleVPDB(C13_nanoA * 1e-9, C12_microA * 1e-6, _d13COXIInom, _meanratio_standard) 
+_dR_molblf = dR_molblf(_dR_molbl, d13C_sample)
+
+#standard normalisation
+
+chisquare = scipy.stats.chisquare(C14_counts[13:]) #do the results make sense?
+
+print('mychisquare',mychisquare(C14_counts[13:]))
+print(C14_counts[13:])
+print(chisquare)
+
+
