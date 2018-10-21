@@ -41,14 +41,14 @@ C13molecularCurrent_microA = C13molecularCurrent_nanoA/1000
 
 
 #defining canstants used in the calculation 
-def dk(t): #@TODO: look up correct value
-    return 50*t
+def dk(t): 
+    return 10*t
 
-def k(t): #@TODO: look up correct value
-    return 200*t
+def k(t): 
+    return 50*t
 F14COXII = 1.34066 # Nominal F14C of OxII standard
 dF14COXII = -0.0178*F14COXII
-
+_d13COXIInom = -17.8/1000 
 
 #general statistical tools
 def mean(x):
@@ -82,9 +82,6 @@ def dR_molbl(d_bl, d_mol):
 
 #3.3.2.3 Mass Fractionation correction
 
-#def dC13_sampleVPDB(C13_sample, C12_sample, C13VPDB, C12VPDB): #VPDB limestrone standard Friedman 1982
-#    return ((C13_sample/C12_sample)/(C13VPDB/C12VPDB) - 1)*1000
-
 def dC13_sampleVPDB(C13_sample, C12_sample, dC13_std, wmeanallratio_std):
     return (((C13_sample/C12_sample)*(1 + dC13_std/1000))/wmeanallratio_std - 1)*1000
 
@@ -103,17 +100,17 @@ def xred2(d_std, d_stdmolblf):
     return mean(d_std)**2/np.sqrt(d_ext2 + mean(d_stdmolblf)**2)  # goal xred2 close to 1. if larger than 2
     # ->additional external error. Therefor we have d_ext
 
-def FC14(R_molblf, FC14OXIInom, Rstd_molblf):
-    return mean(R_molblf)*(FC14OXIInom/mean(Rstd_molblf))
-
-def dFC14(FC14, dR_molblf, R_molblf, dstdR_molblf, Rstd_molblf):
-    return FC14*np.sqrt((dR_molblf/R_molblf)**2 + (mean( dstdR_molblf)/mean(Rstd_molblf))**2)
-
 def mychisquare(sample):
     _chisquared = 0
-    for i in range (sample.shape[0]):
+    for i in range(sample.shape[0]):
         _chisquared += (mean(sample) - sample[i])**2/np.sqrt(sample[i])
     return _chisquared
+
+def FC14(R_molblf, FC14OXIInom, Rstd_molblf): #ERROR
+    return mean(R_molblf)*(FC14OXIInom/mean(Rstd_molblf))
+
+def dFC14(FC14, dR_molblf, R_molblf, dstdR_molblf, Rstd_molblf): #ERROR
+    return FC14*np.sqrt((dR_molblf/R_molblf)**2 + (mean( dstdR_molblf)/mean(Rstd_molblf))**2)
 
 # calculations
 
@@ -144,29 +141,27 @@ print('Individual T14C for all samples: ', '\n', T_14Cyears2) #Years BP meaning 
 
 
 #error calculation @TODO: use weighted mean instead of mean!!
-print('\n', 'Error calculations', '\n')
+print('\n', 'Error calculations:', '\n')
 
-_d14C = np.sqrt(C14_counts) #estimated as sqrt of counts of 14C
-_dmol = 3e-16
+_d14C = np.sqrt(C14_counts)  #estimated as sqrt of counts of 14C
+_dmol = 3e-16 #given value
 _dR_mol = dbackgroundcorrect(_d14C, dk(rtime_s)) 
 _dR_molbl = dR_molbl(_dR_mol, _dmol)
-_d13COXIInom = -17.8/1000 
 _wmeanratio_standard = weightedmean((C13_microA[6:12]/C12_microA[6:12]), rtime_s[6:12])
-d13C_sample = dC13_sampleVPDB(C13_nanoA * 1e-9, C12_microA * 1e-6, _d13COXIInom, _wmeanratio_standard) 
+d13C_sample = dC13_sampleVPDB(C13_microA, C12_microA, _d13COXIInom, _wmeanratio_standard) 
 _dR_molblf = dR_molblf(_dR_molbl, d13C_sample)
 
 #standard normalisation
 
 chisquare = scipy.stats.chisquare(C14_counts[13:]) #do the results make sense?
 
-print('mychisquare',mychisquare(C14_counts[13:]))
-print(C14_counts[13:])
-print(chisquare)
-
+print('mychisquare: ', mychisquare(C14_counts[13:]))
+print('sigma(std): ', weightedmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12]))
+print('d_std_molblf: ', weightedmean(_dR_molblf[6:12], rtime_s[6:12]))
 chisquared_red = weightedmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12])**2 / weightedmean(_dR_molblf[6:12], rtime_s[6:12])**2
 print('chisquare_red =', chisquared_red) #nonsense
 
 #ratio correction
 
-dF14C = dFC14(F14C2, _dR_molblf, _R_molblf,  )
+dF14C = dFC14(F14C2, _dR_molblf[13:], _R_molblf[13:],  _dR_molblf[6:12], _R_molblf[6:12]) #EROOR
 
