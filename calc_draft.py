@@ -164,5 +164,9 @@ print(C14_counts[13:])
 print(chisquare)
 
 chisquared_red = weightedmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12])**2 / weightedmean(_dR_molblf[6:12], rtime_s[6:12])**2
-print('chisquare_red =', chisquared_red)
+print('chisquare_red =', chisquared_red) #nonsense
+
+#ratio correction
+
+dF14C = dFC14(F14C2, _dR_molblf, _R_molblf,  )
 
