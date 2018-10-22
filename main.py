@@ -33,6 +33,8 @@ cycles = DF[:, 5]
 sampleweight_microg = DF[:, 6]
 
 
+_dmol = 3e-16 #given value
+
 #conversion into desired unit
 
 C13_microA = C13_nanoA/1000
@@ -46,9 +48,9 @@ def dk(t):
 
 def k(t): 
     return 200*t
-F14COXII = 1.34066 # Nominal F14C of OxII standard
+F14COXII = 1.34066           #Nominal F14C of OxII standard
 dF14COXII = -0.0178*F14COXII
-_d13COXIInom = -17.8/1000 
+d13COXIInom = -17.8/1000     #nominal d13C OxII standard
 
 #general statistical tools
 def mean(x):
@@ -62,7 +64,7 @@ def var(x):
 
 #3.3.2.1 background correction
 
-def weighting(x, C12, t):
+def p_wmean(x, t, C12):
     p = C12*t
     return weightedmean(x, p)
 
@@ -99,12 +101,6 @@ def xred2(d_std, d_stdmolblf, time):
     d_ext2 = 0.002
     return 1./( weightedmean(d_std, time)**2/np.sqrt(d_ext2 **2 + weightedmean(d_stdmolblf, time)**2))  # goal xred2 close to 1. if larger than 2
     # ->additional external error. Therefor we have d_ext
-
-def mychisquare(sample):
-    _chisquared = 0
-    for i in range(sample.shape[0]):
-        _chisquared += (mean(sample) - sample[i])**2/np.sqrt(sample[i])
-    return _chisquared
 
 def FC14(R_molblf, FC14OXIInom, Rstd_molblf): #ERROR
     return mean(R_molblf)*(FC14OXIInom/mean(Rstd_molblf))
@@ -144,26 +140,25 @@ print('Individual T14C for all samples: ', '\n', T_14Cyears2) #Years BP meaning 
 print('\n', 'Error calculations:', '\n')
 
 _d14C = np.sqrt(C14_counts)  #estimated as sqrt of counts of 14C
-_dmol = 3e-16 #given value
 _dR_mol = dbackgroundcorrect(_d14C, dk(rtime_s)) 
 _dR_molbl = dR_molbl(_dR_mol, _dmol)
-_wmeanratio_standard = weightedmean((C13_microA[6:12]/C12_microA[6:12]), rtime_s[6:12])
-d13C_sample = dC13_sampleVPDB(C13_microA, C12_microA, _d13COXIInom, _wmeanratio_standard) 
+_wmeanratio_standard = p_wmean((C13_microA[6:12]/C12_microA[6:12]), rtime_s[6:12], C12_microA[6:12])
+d13C_sample = dC13_sampleVPDB(C13_microA, C12_microA, d13COXIInom, _wmeanratio_standard) 
 _dR_molblf = dR_molblf(_dR_molbl, d13C_sample)
 
 #standard normalisation
 
 chisquare = scipy.stats.chisquare(C14_counts[13:]) #do the results make sense?
-
-print('mychisquare: ', mychisquare(C14_counts[13:]))
-print('sigma(std): ', weightedmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12]))
-print('d_std_molblf: ', weightedmean(_dR_molblf[6:12], rtime_s[6:12])) #value by factor 31 greater than expected
-chisquared_red = weightedmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12])**2 / weightedmean(_dR_molblf[6:12], rtime_s[6:12])**2
+chisquared_red = p_wmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12], C12_microA[6:12])**2 / p_wmean(_dR_molblf[6:12], rtime_s[6:12], C12_microA[6:12])**2
 chisquared_red_two = xred2(np.sqrt(C14_counts[6:12]), _dR_molblf[6:12], rtime_s[6:12])
-print('chisquare_red =', chisquared_red)
-print('chisquared_red_2 =', chisquared_red_two) #nonsense
 
 #ratio correction
 
 dF14C = dFC14(F14C2, _dR_molblf[13:], _R_molblf[13:],  _dR_molblf[6:12], _R_molblf[6:12], rtime_s[6:12]) #EROOR
-#bbc
+
+print('sigma(std): ', p_wmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12], C12_microA[6:12]))
+print('d_std_molblf: ', p_wmean(_dR_molblf[6:12], rtime_s[6:12], C12_microA[6:12]))#value by factor 31 greater than expected
+print('wrong: chisquare_red =', chisquared_red)
+print('ok-ish: chisquared_red_2 =', chisquared_red_two) #nonsense
+
+
