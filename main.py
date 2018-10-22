@@ -4,8 +4,6 @@ import scipy.stats
 import os #used for data path
 
 # #load CSV file Jonas
-"""path_unicode = u'~/Git_Repos/EvaluationMICADAS/RCD_data2csv.csv'
-path_unicode.encode('utf-8')"""
 path_jonas = open(os.path.expanduser('~/Git_Repos/EvaluationMICADAS/RCD_data2csv.csv'), encoding='utf-8')
 data_file = np.genfromtxt(path_jonas, delimiter=',')
 # #format data file to only have the relevant number; this should be a 28 by 7 matrix
@@ -44,12 +42,12 @@ C13molecularCurrent_microA = C13molecularCurrent_nanoA/1000
 
 #defining canstants used in the calculation 
 def dk(t): 
-    return 50*t
+    return 10*t
 
 def k(t): 
-    return 200*t
+    return 50*t
 F14COXII = 1.34066           #Nominal F14C of OxII standard
-dF14COXII = -0.0178*F14COXII
+dF14COXII = -0.0178 *F14COXII
 d13COXIInom = -17.8/1000     #nominal d13C OxII standard
 
 #general statistical tools
@@ -99,14 +97,18 @@ def dR_molblf(dR_molbl, dC13_sample):
 
 def xred2(d_std, d_stdmolblf, time):
     d_ext2 = 0.002
-    return 1./( weightedmean(d_std, time)**2/np.sqrt(d_ext2 **2 + weightedmean(d_stdmolblf, time)**2))  # goal xred2 close to 1. if larger than 2
+    return (weightedmean(d_std, time)**2/np.sqrt(d_ext2 **2 + weightedmean(d_stdmolblf, time)**2))  # goal xred2 close to 1. if larger than 2
     # ->additional external error. Therefor we have d_ext
 
-def FC14(R_molblf, FC14OXIInom, Rstd_molblf): #ERROR
+def FC14(R_molblf, FC14OXIInom, Rstd_molblf): 
     return mean(R_molblf)*(FC14OXIInom/mean(Rstd_molblf))
 
-def dFC14(FC14, dR_molblf, R_molblf, dstdR_molblf, Rstd_molblf, time): #ERROR
+def dFC14(FC14, dR_molblf, R_molblf, dstdR_molblf, Rstd_molblf, time):
     return FC14*np.sqrt((dR_molblf/R_molblf)**2 + (weightedmean(dstdR_molblf, time)/weightedmean(Rstd_molblf, time))**2)
+def w_variance(samples, weights):
+    _mean = mean(samples)
+    return sum((samples - _mean)**2*weights)/sum(weights)
+
 
 # calculations
 
@@ -136,7 +138,7 @@ T_14Cyears2 = -8033*np.log(F14C2) #conventional radiocarbon age
 print('Individual T14C for all samples: ', '\n', T_14Cyears2) #Years BP meaning years before 1950
 
 
-#error calculation @TODO: use weighted mean instead of mean!!
+#error calculation 
 print('\n', 'Error calculations:', '\n')
 
 _d14C = np.sqrt(C14_counts)  #estimated as sqrt of counts of 14C
@@ -146,6 +148,8 @@ _wmeanratio_standard = p_wmean((C13_microA[6:12]/C12_microA[6:12]), rtime_s[6:12
 d13C_sample = dC13_sampleVPDB(C13_microA, C12_microA, d13COXIInom, _wmeanratio_standard) 
 _dR_molblf = dR_molblf(_dR_molbl, d13C_sample)
 
+
+print(_d14C[6:12], np.std(C14_counts[6:12]))
 #standard normalisation
 
 chisquare = scipy.stats.chisquare(C14_counts[13:]) #do the results make sense?
@@ -158,7 +162,7 @@ dF14C = dFC14(F14C2, _dR_molblf[13:], _R_molblf[13:],  _dR_molblf[6:12], _R_molb
 
 print('sigma(std): ', p_wmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12], C12_microA[6:12]))
 print('d_std_molblf: ', p_wmean(_dR_molblf[6:12], rtime_s[6:12], C12_microA[6:12]))#value by factor 31 greater than expected
-print('wrong: chisquare_red =', chisquared_red)
-print('ok-ish: chisquared_red_2 =', chisquared_red_two) #nonsense
+print('chisquare_red =', chisquared_red)
+print('chisquared_red_2 =', chisquared_red_two) #nonsense
 
 
