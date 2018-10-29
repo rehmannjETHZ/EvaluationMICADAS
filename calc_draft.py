@@ -163,5 +163,5 @@ print('chisquare_red =', chisquared_red) #nonsense
 
 #ratio correction
 
-dF14C = dFC14(F14C2, _dR_molblf[13:], _R_molblf[13:],  _dR_molblf[6:12], _R_molblf[6:12]) #EROOR
+dF14C = dFC14(F14C2, _dR_molblf[13:], _R_molblf[13:],  _dR_molblf[6:12], _R_molblf[6:12]) #ERROR
 

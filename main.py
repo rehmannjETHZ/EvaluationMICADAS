@@ -43,10 +43,10 @@ C13molecularCurrent_microA = C13molecularCurrent_nanoA/1000
 
 #defining canstants used in the calculation 
 def dk(t): 
-    return 70*t
+    return 1*t
 
 def k(t): 
-    return 100*t
+    return 120*t
 F14COXII = 1.34066           #Nominal F14C of OxII standard
 dF14COXII = -0.0178 *F14COXII 
 d13COXIInom = -17.8/1000     #nominal d13C OxII standard
@@ -111,15 +111,20 @@ def w_variance(samples, weights):
     _mean = mean(samples)
     return sum((samples - _mean)**2*weights)/sum(weights)
 
-def delta_molblf(delta_blanks, delta_14C, delta_k, carbon_13_standard, carbon_12_standard, carbon_13_sample, carbon_12_sample): #using normal mean ~possible difference
-    delta_13_carbon_standard = 1 #dummy value
+
+#functions for the error calculation 
+delta_13_carbon_standard = 0.011180 *1000 #from wikipedia converted to per mille Source: https://en.wikipedia.org/wiki/Reference_materials_for_stable_isotope_analysis
+def delta_molblf(delta_blanks, delta_14C, delta_k, carbon_13_standard, carbon_12_standard, carbon_13_sample, carbon_12_sample): #using normal mean ~> possible difference
     prefactor = np.sqrt(delta_blanks**2 + delta_14C**2 + delta_k**2)
     fraction_factor = .975 * np.mean(carbon_13_standard / carbon_13_standard) / ((carbon_13_sample / carbon_12_sample ) * (1 + delta_13_carbon_standard / 1000))
     return prefactor * fraction_factor**2
 
 def delta_F14C(delta_molblf_var, R_molblf_var, F14C_var): 
-    print(R_molblf_var.shape, delta_molblf_var.shape, F14C_var.shape)
-    return F14C_var * np.sqrt(((delta_molblf_var[13:])/(R_molblf_var[13:]))**2 + (mean(delta_molblf_var[6:12])/nmean(R_molblf_var[6:12]))**2)
+    summand_one = (delta_molblf_var)/(R_molblf_var[13:])
+    return F14C_var * np.sqrt(summand_one**2 + (mean(delta_molblf_var[6:12])/mean(R_molblf_var[6:12]))**2)
+
+def delta_molbl(delta_blank, delta_14C, delta_k):
+    return np.sqrt(delta_blank**2 + delta_14C**2, delta_k**2)
 
 
 
@@ -155,34 +160,10 @@ print('Individual T14C for all samples: ', '\n', T_14Cyears2) #Years BP meaning 
 #error calculation 
 print('\n', 'Error calculations:', '\n')
 
-_d14C = np.sqrt(C14_counts)  #estimated as sqrt of counts of 14C
-_dR_mol = dbackgroundcorrect(_d14C, dk(rtime_s)) 
-_dR_molbl = dR_molbl(_dR_mol, _dmol)
-_wmeanratio_standard = p_wmean((C13_microA[6:12]/C12_microA[6:12]), rtime_s[6:12], C12_microA[6:12])
-d13C_sample = dC13_sampleVPDB(C13_microA, C12_microA, d13COXIInom, _wmeanratio_standard)
-_dR_molblf = dR_molblf(_dR_molbl, d13C_sample) 
-
-
-print(_d14C[6:12], np.std(C14_counts[6:12]))
-#standard normalisation
-
-chisquare = scipy.stats.chisquare(C14_counts[13:]) #do the results make sense?
-chisquared_red = p_wmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12], C12_microA[6:12])**2 / p_wmean(_dR_molblf[6:12], rtime_s[6:12], C12_microA[6:12])**2
-chisquared_red_two = xred2(np.sqrt(C14_counts[6:12]), _dR_molblf[6:12], rtime_s[6:12])
-
-#ratio correction
-
-dF14C = dFC14(F14C2, _dR_molblf[13:], _R_molblf[13:],  _dR_molblf[6:12], _R_molblf[6:12]) #ERROR
-
 #@TODO: 
 uncertainty_blank = 3e-16 #might be higher
-delta_molblf_value = delta_molblf(uncertainty_blank, np.sqrt(C14_counts[13:]), dk(rtime_s[13:]), C13_microA[6:12], C12_microA[6:12], C13_microA[13:], C12_microA[13:])
-delta_F14C_value = delta_F14C(delta_molblf_value, _R_molblf, F14C2)
-print(delta_molblf_value, '\n', delta_F14C_value)
+delta_molbl_value = delta_molbl( uncertainty_blank, np.sqrt(C14_counts), dk(rtime_s))
+delta_molblf_value= delta_molbl_value * (.975/1+_dC13_sampleVPDB/1000)**2
+delta_F14C_value = delta_F14C(delta_molblf_value[13:], _R_molblf, F14C2)
+print('delta_molblf: \n',delta_molblf_value, '\n delta_F14C: \n', delta_F14C_value)
 
-"""
-print('sigma(std): ', p_wmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12], C12_microA[6:12])/mean(C14_counts[6:12]))
-print('d_std_molblf: ', p_wmean(_dR_molblf[6:12], rtime_s[6:12], C12_microA[6:12]))#value by factor 31 greater than expected
-print('chisquared_red_2 =', chisquared_red_two) #nonsense
-print('f:', dF14C)
-"""
