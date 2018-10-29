@@ -118,8 +118,7 @@ def delta_molblf(delta_blanks, delta_14C, delta_k, carbon_13_standard, carbon_12
     return prefactor * fraction_factor**2
 
 def delta_F14C(delta_molblf_var, R_molblf_var, F14C_var): 
-    print(R_molblf_var.shape, delta_molblf_var.shape, F14C_var.shape)
-    return F14C_var * np.sqrt(((delta_molblf_var[13:])/(R_molblf_var[13:]))**2 + (mean(delta_molblf_var[6:12])/nmean(R_molblf_var[6:12]))**2)
+    return F14C_var * np.sqrt(((delta_molblf_var[13:])/(R_molblf_var[13:]))**2 + (np.mean(delta_molblf_var[6:12])/np.mean(R_molblf_var[6:12]))**2)
 
 
 
@@ -137,6 +136,7 @@ _dC13_sampleVPDB = dC13_sampleVPDB(C13_microA, C12_microA, dC13_std, wmeanallrat
 _dC13_sample = 0 # for single sample
 _R_molblf = R_molblf(_R_molbl, _dC13_sample)
 
+print(_R_molblf.shape)
 # 1 calculate with mean of all samples
 F14C = (weightedmean(_R_molblf[13:], rtime_s[13:])/weightedmean(_R_molblf[6:12], rtime_s[6:12]))*F14COXII
 print('weighted mean of all samples F14C ratio: ', F14C)
@@ -155,23 +155,8 @@ print('Individual T14C for all samples: ', '\n', T_14Cyears2) #Years BP meaning 
 #error calculation 
 print('\n', 'Error calculations:', '\n')
 
-_d14C = np.sqrt(C14_counts)  #estimated as sqrt of counts of 14C
-_dR_mol = dbackgroundcorrect(_d14C, dk(rtime_s)) 
-_dR_molbl = dR_molbl(_dR_mol, _dmol)
-_wmeanratio_standard = p_wmean((C13_microA[6:12]/C12_microA[6:12]), rtime_s[6:12], C12_microA[6:12])
-d13C_sample = dC13_sampleVPDB(C13_microA, C12_microA, d13COXIInom, _wmeanratio_standard)
-_dR_molblf = dR_molblf(_dR_molbl, d13C_sample) 
-
-
-print(_d14C[6:12], np.std(C14_counts[6:12]))
-#standard normalisation
-
-chisquare = scipy.stats.chisquare(C14_counts[13:]) #do the results make sense?
-chisquared_red = p_wmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12], C12_microA[6:12])**2 / p_wmean(_dR_molblf[6:12], rtime_s[6:12], C12_microA[6:12])**2
-chisquared_red_two = xred2(np.sqrt(C14_counts[6:12]), _dR_molblf[6:12], rtime_s[6:12])
-
 #ratio correction
-
+"""
 dF14C = dFC14(F14C2, _dR_molblf[13:], _R_molblf[13:],  _dR_molblf[6:12], _R_molblf[6:12]) #ERROR
 
 #@TODO: 
@@ -180,9 +165,3 @@ delta_molblf_value = delta_molblf(uncertainty_blank, np.sqrt(C14_counts[13:]), d
 delta_F14C_value = delta_F14C(delta_molblf_value, _R_molblf, F14C2)
 print(delta_molblf_value, '\n', delta_F14C_value)
 
-"""
-print('sigma(std): ', p_wmean(np.sqrt(C14_counts[6:12]), rtime_s[6:12], C12_microA[6:12])/mean(C14_counts[6:12]))
-print('d_std_molblf: ', p_wmean(_dR_molblf[6:12], rtime_s[6:12], C12_microA[6:12]))#value by factor 31 greater than expected
-print('chisquared_red_2 =', chisquared_red_two) #nonsense
-print('f:', dF14C)
-"""
