@@ -165,7 +165,14 @@ uncertainty_blank = 3e-16 #might be higher
 delta_molbl_value = delta_molbl( uncertainty_blank, np.sqrt(C14_counts), dk(rtime_s))
 delta_molblf_value= delta_molbl_value * (.975/1+_dC13_sampleVPDB/1000)**2
 delta_F14C_value = delta_F14C(delta_molblf_value[13:], _R_molblf, F14C2)
-print('delta_molblf: \n',delta_molblf_value, '\n delta_F14C: \n', delta_F14C_value)
 delta_T14C_years = 8033/F14C2 * delta_F14C_value
+delta_T14C_years_mean = scipy.stats.sem(delta_T14C_years)
+delta_F14C_value_mean = scipy.stats.sem(delta_F14C_value)
+
+print('delta_molblf: \n',delta_molblf_value, '\n delta_F14C: \n', delta_F14C_value)
 print('delta of the age in years: \n', delta_T14C_years)
+print('error of the mean; T14C: \n ', delta_T14C_years_mean,
+        '\n error of the mean; F14C: \n', delta_F14C_value_mean)
+
+
 
