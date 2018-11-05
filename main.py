@@ -120,13 +120,16 @@ def delta_molblf(delta_blanks, delta_14C, delta_k, carbon_13_standard, carbon_12
     return prefactor * fraction_factor**2
 
 def delta_F14C(delta_molblf_var, R_molblf_var, F14C_var): 
-    summand_one = (delta_molblf_var)/(R_molblf_var)
+    summand_one = (delta_molblf_var)/(R_molblf_var[13:])
     return F14C_var * np.sqrt(summand_one**2 + (mean(delta_molblf_var[6:12])/mean(R_molblf_var[6:12]))**2)
 
 def delta_molbl(delta_blank, delta_14C, delta_k):
     return np.sqrt(delta_blank**2 + delta_14C**2, delta_k**2)
 
 
+def delta_std14C(delta_molblf_var, R_molblf_var, F14C_var):
+    summand_one = (delta_molblf_var)/(R_molblf_var[6:12])
+    return F14C_var * np.sqrt(summand_one**2 + (mean(delta_molblf_var[6:12])/mean(R_molblf_var[6:12]))**2)
 
 
 # calculations
@@ -145,7 +148,7 @@ _R_molblf = R_molblf(_R_molbl, _dC13_sample)
 
 
 # 1 calculate with mean of all samples
-F14C = (weightedmean(_R_molblf, rtime_s)/weightedmean(_R_molblf[6:12], rtime_s[6:12]))*F14COXII
+F14C = (weightedmean(_R_molblf[13:], rtime_s[13:])/weightedmean(_R_molblf[6:12], rtime_s[6:12]))*F14COXII
 print('weighted mean of all samples F14C ratio: ', F14C)
 
 T_14Cyears = -8033*np.log(F14C) #conventional radiocarbon age
@@ -166,7 +169,7 @@ print('\n', 'Error calculations:', '\n')
 uncertainty_blank = 3e-16 #might be higher
 delta_molbl_value = delta_molbl( uncertainty_blank, np.sqrt(C14_counts), dk(rtime_s))
 delta_molblf_value= delta_molbl_value * (.975/1+_dC13_sampleVPDB/1000)**2
-delta_F14C_value = delta_F14C(delta_molblf_value, _R_molblf, F14C2)
+delta_F14C_value = delta_F14C(delta_molblf_value[13:], _R_molblf, F14C2)
 delta_T14C_years = 8033/F14C2 * delta_F14C_value
 delta_T14C_years_mean = scipy.stats.sem(delta_T14C_years)
 delta_F14C_value_mean = scipy.stats.sem(delta_F14C_value)
