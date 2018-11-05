@@ -4,6 +4,7 @@ import scipy.stats
 import os #used for data path
 
 # #load CSV file Jonas
+"""
 path_jonas = open(os.path.expanduser('~/Git_Repos/EvaluationMICADAS/RCD_data2csv.csv'), encoding='utf-8')
 data_file = np.genfromtxt(path_jonas, delimiter=',')
 # #format data file to only have the relevant number; this should be a 28 by 7 matrix
@@ -11,14 +12,14 @@ DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
 
 # print(DF.shape)
 # # format of DF: 14C counts | 12C (HE) muA | 13C (HE) nA | 13 CH nA (molecular current) |r-time | cyc | sample weight
-
+"""
 # Joël's file reader - Jonas file reader does not work at my computer... but as long as main is
 # in the same directory as RDC_data2csv.csv this version should work everywhere.
 
-"""
+
 data_file = np.genfromtxt('RCD_data2csv.csv', delimiter=',')
 DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
-"""
+
 
 #Splitting values into seperate arrays:
 
@@ -164,4 +165,5 @@ uncertainty_blank = 3e-16 #might be higher
 delta_molblf_value = delta_molblf(uncertainty_blank, np.sqrt(C14_counts[13:]), dk(rtime_s[13:]), C13_microA[6:12], C12_microA[6:12], C13_microA[13:], C12_microA[13:])
 delta_F14C_value = delta_F14C(delta_molblf_value, _R_molblf, F14C2)
 print(delta_molblf_value, '\n', delta_F14C_value)
+"""
 

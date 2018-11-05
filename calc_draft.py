@@ -5,7 +5,7 @@ import os #used for data path
 
 # #load CSV file Jonas
 """path_unicode = u'~/Git_Repos/EvaluationMICADAS/RCD_data2csv.csv'
-path_unicode.encode('utf-8')"""
+path_unicode.encode('utf-8')
 path_jonas = open(os.path.expanduser('~/Git_Repos/EvaluationMICADAS/RCD_data2csv.csv'), encoding='utf-8')
 data_file = np.genfromtxt(path_jonas, delimiter=',')
 # #format data file to only have the relevant number; this should be a 28 by 7 matrix
@@ -15,11 +15,11 @@ DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
 
 # Joël's file reader - Jonas file reader does not work at my computer... but as long as main is
 # in the same directory as RDC_data2csv.csv this version should work everywhere.
-
 """
+
 data_file = np.genfromtxt('RCD_data2csv.csv', delimiter=',')
 DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
-"""
+
 
 #Splitting values into seperate arrays:
 
