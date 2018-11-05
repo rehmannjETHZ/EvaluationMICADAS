@@ -2,23 +2,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats 
 import os #used for data path
-
+"""
 # #load CSV file Jonas
 path_jonas = open(os.path.expanduser('~/Git_Repos/EvaluationMICADAS/RCD_data2csv.csv'), encoding='utf-8')
 data_file = np.genfromtxt(path_jonas, delimiter=',')
 # #format data file to only have the relevant number; this should be a 28 by 7 matrix
 DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
-
+"""
 # print(DF.shape)
 # # format of DF: 14C counts | 12C (HE) muA | 13C (HE) nA | 13 CH nA (molecular current) |r-time | cyc | sample weight
 
 # Joël's file reader - Jonas file reader does not work at my computer... but as long as main is
 # in the same directory as RDC_data2csv.csv this version should work everywhere.
 
-"""
+
 data_file = np.genfromtxt('RCD_data2csv.csv', delimiter=',')
 DF = np.delete(np.delete(data_file, 0,0), np.s_[:4] ,1)
-"""
+
 
 #Splitting values into seperate arrays:
 
@@ -120,7 +120,7 @@ def delta_molblf(delta_blanks, delta_14C, delta_k, carbon_13_standard, carbon_12
     return prefactor * fraction_factor**2
 
 def delta_F14C(delta_molblf_var, R_molblf_var, F14C_var): 
-    summand_one = (delta_molblf_var)/(R_molblf_var[13:])
+    summand_one = (delta_molblf_var)/(R_molblf_var)
     return F14C_var * np.sqrt(summand_one**2 + (mean(delta_molblf_var[6:12])/mean(R_molblf_var[6:12]))**2)
 
 def delta_molbl(delta_blank, delta_14C, delta_k):
@@ -142,8 +142,10 @@ _dC13_sampleVPDB = dC13_sampleVPDB(C13_microA, C12_microA, dC13_std, wmeanallrat
 _dC13_sample = 0 # for single sample
 _R_molblf = R_molblf(_R_molbl, _dC13_sample)
 
+
+
 # 1 calculate with mean of all samples
-F14C = (weightedmean(_R_molblf[13:], rtime_s[13:])/weightedmean(_R_molblf[6:12], rtime_s[6:12]))*F14COXII
+F14C = (weightedmean(_R_molblf, rtime_s)/weightedmean(_R_molblf[6:12], rtime_s[6:12]))*F14COXII
 print('weighted mean of all samples F14C ratio: ', F14C)
 
 T_14Cyears = -8033*np.log(F14C) #conventional radiocarbon age
@@ -164,15 +166,20 @@ print('\n', 'Error calculations:', '\n')
 uncertainty_blank = 3e-16 #might be higher
 delta_molbl_value = delta_molbl( uncertainty_blank, np.sqrt(C14_counts), dk(rtime_s))
 delta_molblf_value= delta_molbl_value * (.975/1+_dC13_sampleVPDB/1000)**2
-delta_F14C_value = delta_F14C(delta_molblf_value[13:], _R_molblf, F14C2)
+delta_F14C_value = delta_F14C(delta_molblf_value, _R_molblf, F14C2)
 delta_T14C_years = 8033/F14C2 * delta_F14C_value
 delta_T14C_years_mean = scipy.stats.sem(delta_T14C_years)
 delta_F14C_value_mean = scipy.stats.sem(delta_F14C_value)
 
+
+
+
 print('delta_molblf: \n',delta_molblf_value, '\n delta_F14C: \n', delta_F14C_value)
 print('delta of the age in years: \n', delta_T14C_years)
+
 np.savetxt('F14CInd.csv', np.transpose(np.vstack((F14C2, delta_F14C_value))))
 np.savetxt('T14CInd.csv', np.transpose(np.vstack((T_14Cyears2, delta_T14C_years))))
 
 print('mean F14C', mean(F14C2), 'variance F14C', var(F14C2))
 print('mean T14C', mean(T_14Cyears2), 'variance T14C', var(T_14Cyears2))
+
