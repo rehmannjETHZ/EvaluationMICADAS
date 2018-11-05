@@ -166,13 +166,14 @@ delta_molbl_value = delta_molbl( uncertainty_blank, np.sqrt(C14_counts), dk(rtim
 delta_molblf_value= delta_molbl_value * (.975/1+_dC13_sampleVPDB/1000)**2
 delta_F14C_value = delta_F14C(delta_molblf_value[13:], _R_molblf, F14C2)
 delta_T14C_years = 8033/F14C2 * delta_F14C_value
-delta_T14C_years_mean = scipy.stats.sem(delta_T14C_years)
-delta_F14C_value_mean = scipy.stats.sem(delta_F14C_value)
+delta_T14C_years_mean = scipy.stats.sem(T_14Cyears2)
+delta_F14C_value_mean = scipy.stats.sem(F14C2)
+
 
 print('delta_molblf: \n',delta_molblf_value, '\n delta_F14C: \n', delta_F14C_value)
 print('delta of the age in years: \n', delta_T14C_years)
 np.savetxt('F14CInd.csv', np.transpose(np.vstack((F14C2, delta_F14C_value))))
 np.savetxt('T14CInd.csv', np.transpose(np.vstack((T_14Cyears2, delta_T14C_years))))
 
-print('mean F14C', mean(F14C2), 'variance F14C', var(F14C2))
-print('mean T14C', mean(T_14Cyears2), 'variance T14C', var(T_14Cyears2))
+print('mean F14C', mean(F14C2), 'variance F14C', var(F14C2), 'standard error of the mean F14C:', delta_F14C_value_mean)
+print('mean T14C', mean(T_14Cyears2), 'variance T14C', var(T_14Cyears2), 'standard error of the mean T14C:', delta_T14C_years_mean)
